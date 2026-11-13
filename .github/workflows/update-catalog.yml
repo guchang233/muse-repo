@@ -1,0 +1,29 @@
+name: Update score catalog
+on:
+  push:
+    branches: [main]
+    paths-ignore: [catalog.json]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: score-catalog
+  cancel-in-progress: false
+jobs:
+  catalog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.3.1
+        with:
+          ref: main
+      - name: Build catalog from Git tree
+        run: node tools/build-catalog.mjs
+      - name: Publish catalog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add catalog.json
+          git diff --cached --quiet && exit 0
+          git commit -m "Update score catalog"
+          git push origin HEAD:main
+
